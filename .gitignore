@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+data/chroma/
+data/chat_history.db*
+data/documents/
+
+# Keep only the shared PyCharm run configuration.
+.idea/*
+!.idea/runConfigurations/
+!.idea/runConfigurations/*.xml

@@ -1,0 +1,33 @@
+llm:
+  model: qwen3.7-plus
+  temperature: 0.2
+  timeout_seconds: 60
+  max_retries: 2
+
+embedding:
+  model: text-embedding-v4
+  dimensions: 1024
+  batch_size: 10
+
+documents:
+  source_directory: data/documents
+  max_file_size_mb: 10
+  chunk_size: 800
+  chunk_overlap: 120
+  allowed_extensions:
+    - .md
+    - .markdown
+    - .txt
+
+retrieval:
+  knowledge_top_k: 5
+  memory_top_k: 4
+
+storage:
+  chroma_directory: data/chroma
+  knowledge_collection: project_knowledge
+  memory_collection: agent_long_term_memory
+  sqlite_path: data/chat_history.db
+
+chat:
+  recent_message_limit: 20
