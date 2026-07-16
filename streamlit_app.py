@@ -57,6 +57,24 @@ def empty_state(title: str, description: str) -> None:
     )
 
 
+def show_agent_activity(slot: Any, title: str, detail: str) -> None:
+    slot.markdown(
+        f"""
+        <div class="agent-activity" role="status" aria-live="polite">
+          <div class="agent-activity-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="agent-activity-copy">
+            <strong>{html.escape(title)}</strong>
+            <span>{html.escape(detail)}</span>
+          </div>
+          <div class="agent-activity-progress" aria-hidden="true"><i></i></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def display_sources(items: list[dict[str, Any]]) -> None:
     if not items:
         return
@@ -191,6 +209,7 @@ def chat_page(client: AgentAPIClient, health: dict[str, Any] | None) -> None:
     with st.chat_message("assistant"):
         status_slot = st.empty()
         answer_slot = st.empty()
+        show_agent_activity(status_slot, "正在连接模型", "准备会话上下文与可用工具")
         answer = ""
         sources: list[dict[str, Any]] = []
         try:
@@ -202,13 +221,36 @@ def chat_page(client: AgentAPIClient, health: dict[str, Any] | None) -> None:
                 event_name, data = event["event"], event["data"]
                 if event_name == "meta":
                     st.session_state.conversation_id = data.get("conversation_id")
+                    show_agent_activity(
+                        status_slot,
+                        "正在理解你的问题",
+                        "根据需要选择知识库与长期记忆",
+                    )
                 elif event_name == "status":
-                    status_slot.caption(data.get("message", "正在处理…"))
+                    stage = data.get("stage")
+                    tool_name = data.get("tool")
+                    if tool_name == "search_knowledge_base":
+                        detail = "正在匹配最相关的项目资料片段"
+                    elif tool_name == "search_long_term_memory":
+                        detail = "正在回忆相关的历史对话"
+                    elif stage == "memory":
+                        detail = "完成后即可在后续会话中回忆本轮内容"
+                    else:
+                        detail = "复杂问题可能需要多一点时间"
+                    show_agent_activity(
+                        status_slot,
+                        data.get("message", "正在处理…"),
+                        detail,
+                    )
                 elif event_name == "sources":
                     sources.extend(data.get("items", []))
                 elif event_name == "token":
+                    if not answer:
+                        status_slot.empty()
                     answer += data.get("text", "")
                     answer_slot.markdown(answer + " ▌")
+                elif event_name == "done":
+                    status_slot.empty()
                 elif event_name == "error":
                     raise APIError(data.get("message", "Agent 请求失败"))
             status_slot.empty()

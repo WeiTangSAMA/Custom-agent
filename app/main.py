@@ -176,6 +176,10 @@ def create_app(settings: AppSettings | None = None) -> FastAPI:
                         answer = completion.pop("answer")
                     else:
                         yield _sse(item["event"], item["data"])
+                yield _sse(
+                    "status",
+                    {"stage": "memory", "message": "正在保存本轮记忆…"},
+                )
                 memory_id = runtime.memories.store_turn(
                     conversation_id, turn_id, payload.question, answer
                 )

@@ -18,6 +18,7 @@ def test_health_client() -> None:
 def test_stream_chat_parses_sse_events() -> None:
     body = (
         'event: meta\ndata: {"conversation_id":"c1","turn_id":"t1"}\n\n'
+        'event: status\ndata: {"stage":"memory","message":"正在保存本轮记忆…"}\n\n'
         'event: token\ndata: {"text":"你好"}\n\n'
         'event: done\ndata: {"memory_saved":true}\n\n'
     )
@@ -28,8 +29,8 @@ def test_stream_chat_parses_sse_events() -> None:
 
     client = AgentAPIClient("http://agent.test", transport=httpx.MockTransport(handler))
     events = list(client.stream_chat("hello", None, "request-1"))
-    assert [item["event"] for item in events] == ["meta", "token", "done"]
-    assert events[1]["data"]["text"] == "你好"
+    assert [item["event"] for item in events] == ["meta", "status", "token", "done"]
+    assert events[2]["data"]["text"] == "你好"
 
 
 def test_api_errors_surface_backend_message() -> None:

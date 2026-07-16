@@ -151,6 +151,83 @@ p, li { text-wrap: pretty; }
   max-width: 75ch;
 }
 
+.agent-activity {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: center;
+  column-gap: .7rem;
+  row-gap: .55rem;
+  max-width: 30rem;
+  padding: .65rem .1rem .85rem;
+}
+
+.agent-activity-mark {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .2rem;
+  border-radius: 10px;
+  color: var(--ui-primary);
+  background: color-mix(in oklch, var(--ui-primary) 11%, var(--ui-bg));
+}
+
+.agent-activity-mark span {
+  width: .2rem;
+  height: .9rem;
+  border-radius: 999px;
+  background: currentColor;
+  transform-origin: center;
+  animation: agent-thinking 900ms cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+}
+
+.agent-activity-mark span:nth-child(2) { animation-delay: 150ms; }
+.agent-activity-mark span:nth-child(3) { animation-delay: 300ms; }
+
+.agent-activity-copy strong {
+  display: block;
+  color: var(--ui-ink);
+  font-size: .88rem;
+  line-height: 1.3;
+}
+
+.agent-activity-copy span {
+  display: block;
+  margin-top: .16rem;
+  color: var(--ui-muted);
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.agent-activity-progress {
+  grid-column: 2;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--ui-surface-strong);
+}
+
+.agent-activity-progress i {
+  display: block;
+  width: 34%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ui-primary);
+  transform: translateX(-130%);
+  animation: agent-progress 1.35s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes agent-thinking {
+  from { transform: scaleY(.38); opacity: .42; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes agent-progress {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(390%); }
+}
+
 .stButton > button, .stDownloadButton > button {
   border-radius: 9px;
   min-height: 2.45rem;
@@ -199,7 +276,19 @@ textarea:focus-visible {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+
+  .agent-activity-mark span {
+    animation: none !important;
+    opacity: .72;
+    transform: none;
+  }
+
+  .agent-activity-progress i {
+    width: 100%;
+    animation: none !important;
+    opacity: .48;
+    transform: none;
+  }
 }
 </style>
 """
-
