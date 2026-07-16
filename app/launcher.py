@@ -25,9 +25,20 @@ def _hidden_process_flags() -> int:
     return subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
 
+def _stop_process(process: subprocess.Popen[bytes] | None) -> None:
+    if process is None or process.poll() is not None:
+        return
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+
+
 def launch() -> int:
     """Launch FastAPI when needed, then run Streamlit in the foreground."""
     api_process: subprocess.Popen[bytes] | None = None
+    ui_process: subprocess.Popen[bytes] | None = None
     environment = os.environ.copy()
     environment.setdefault("AGENT_API_URL", API_URL)
     environment.setdefault("PYTHONUTF8", "1")
@@ -55,12 +66,12 @@ def launch() -> int:
                 raise RuntimeError("FastAPI failed to start. Check the terminal output above.")
             time.sleep(0.25)
         else:
-            api_process.terminate()
+            _stop_process(api_process)
             raise RuntimeError("FastAPI did not become ready within 10 seconds.")
 
     print("Project Mind is starting at http://127.0.0.1:8501")
     try:
-        result = subprocess.run(
+        ui_process = subprocess.Popen(
             [
                 sys.executable,
                 "-m",
@@ -74,14 +85,11 @@ def launch() -> int:
             ],
             cwd=PROJECT_ROOT,
             env=environment,
-            check=False,
         )
-        return result.returncode
+        return ui_process.wait()
+    except KeyboardInterrupt:
+        print("\nProject Mind stopped.")
+        return 0
     finally:
-        if api_process is not None and api_process.poll() is None:
-            api_process.terminate()
-            try:
-                api_process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                api_process.kill()
-
+        _stop_process(ui_process)
+        _stop_process(api_process)
